@@ -1,5 +1,5 @@
 import torch
-from torch.autograd.function import  InplaceFunction
+from torch.autograd.function import InplaceFunction
 
 #sparse x dense
 #https://discuss.pytorch.org/t/does-pytorch-support-autograd-on-sparse-matrix/6156/5
@@ -47,6 +47,6 @@ def sparse_diag(x):
     x_typename = torch.typename(x).split('.')[-1]
     sparse_tensortype = getattr(torch.sparse, x_typename)
     index = range(x.size(0))
-    indices = torch.LongTensor([index, index]).cuda()
+    indices = torch.LongTensor([index, index])
     result = sparse_tensortype(indices, x, (size,size))
     return result

@@ -33,10 +33,18 @@ biterms = []
 window_length = 30
 mini_doc = 3
 
+## default to use GPU, but have to check if GPU exists
+#if not args.nogpu:
+#    if torch.cuda.device_count() == 0:
+#        args.nogpu = True
+
 # default to use GPU, but have to check if GPU exists
 if not args.nogpu:
     if torch.cuda.device_count() == 0:
         args.nogpu = True
+        import torch.cuda as t
+else:
+    import torch as t
 
 
 def to_onehot(data, min_length):
@@ -154,18 +162,18 @@ def train(dataloader):
         for biterm in dataloader:
 
             mm = SparseMM.apply
-            biterm = torch.FloatTensor(biterm).float().cuda()
+            biterm = torch.FloatTensor(biterm).float()
             target_input.append(Variable(biterm))
 
-            sparse_biterms = to_sparse(biterm.float().cuda())
-            ones = torch.cuda.FloatTensor(biterm.shape[0]).fill_(1).unsqueeze(-1)
+            sparse_biterms = to_sparse(biterm.float())
+            ones = t.FloatTensor(biterm.shape[0]).fill_(1).unsqueeze(-1)
 
             indices = to_sparse(mm(sparse_biterms, ones))._indices()
-            values = torch.cuda.FloatTensor(indices.size()[1]).fill_(1)
+            values = t.FloatTensor(indices.size()[1]).fill_(1)
 
-            adj_mask = torch.cuda.sparse.FloatTensor(indices, values, (sparse_biterms.size()[0], 1))
+            adj_mask = t.sparse.FloatTensor(indices, values, (sparse_biterms.size()[0], 1))
 
-            eye = sparse_ones(biterm.size()[0]).cuda()
+            eye = sparse_ones(biterm.size()[0])
 
             adj = (sparse_biterms + eye).coalesce()
 
@@ -178,7 +186,7 @@ def train(dataloader):
             adj = mm(degrees, adj)
             indices = (sparse_biterms + eye).coalesce()._indices()
             values = adj[tuple(indices[i] for i in range(indices.shape[0]))]
-            adj = torch.cuda.sparse.FloatTensor(indices, values, sparse_biterms.size())
+            adj = t.sparse.FloatTensor(indices, values, sparse_biterms.size())
 
             GCNsInputList.append( (Variable(sparse_biterms),
                                     Variable(adj)) )
