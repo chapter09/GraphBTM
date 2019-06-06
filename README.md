@@ -10,7 +10,7 @@ Thanks for sharing code!
 
 # Requirements
   - python 3.6
-  - pytorch 0.4
+  - pytorch 0.4.1
   - numpy
   - python 2.7 for topic coherence evaluation
 
